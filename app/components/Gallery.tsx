@@ -21,25 +21,25 @@ export type PhotoGroup = {
   photos: Photo[];
 };
 
-function toRows(photos: Photo[], offset: number) {
-  const rows: Row[] = [];
-  let pending: Row = [];
-  photos.forEach((photo, position) => {
-    const index = offset + position;
+function arrange(photos: Photo[]) {
+  const rows: Photo[][] = [];
+  let waiting: Photo | null = null;
+  for (const photo of photos) {
     if (isWide(photo)) {
-      if (pending.length) rows.push(pending);
-      rows.push([{ photo, index }]);
-      pending = [];
-      return;
+      rows.push([photo]);
+    } else if (waiting) {
+      rows.push([waiting, photo]);
+      waiting = null;
+    } else {
+      waiting = photo;
     }
-    pending.push({ photo, index });
-    if (pending.length === 2) {
-      rows.push(pending);
-      pending = [];
-    }
-  });
-  if (pending.length) rows.push(pending);
+  }
+  if (waiting) rows.push([waiting]);
   return rows;
+}
+
+function isLonePortrait(row: Row) {
+  return row.length === 1 && !isWide(row[0].photo);
 }
 
 function rowStyle(row: Row) {
@@ -52,12 +52,20 @@ function markLoaded(event: React.SyntheticEvent<HTMLImageElement>) {
 }
 
 function layout(groups: PhotoGroup[]) {
-  let offset = 0;
-  return groups.map((group) => {
-    const rows = toRows(group.photos, offset);
-    offset += group.photos.length;
+  let index = 0;
+  const photos: Photo[] = [];
+  const captions: Array<string | undefined> = [];
+  const sections = groups.map((group) => {
+    const rows: Row[] = arrange(group.photos).map((row) =>
+      row.map((photo) => {
+        photos.push(photo);
+        captions.push(group.title);
+        return { photo, index: index++ };
+      }),
+    );
     return { ...group, rows };
   });
+  return { sections, photos, captions };
 }
 
 type GalleryProps = {
@@ -67,9 +75,7 @@ type GalleryProps = {
 
 export function Gallery({ groups, label }: GalleryProps) {
   const [viewing, setViewing] = useState<number | null>(null);
-  const sections = layout(groups);
-  const photos = groups.flatMap((group) => group.photos);
-  const captions = groups.flatMap((group) => group.photos.map(() => group.title));
+  const { sections, photos, captions } = layout(groups);
 
   const open = (index: number) => setViewing(index);
   const close = () => setViewing(null);
@@ -84,7 +90,12 @@ export function Gallery({ groups, label }: GalleryProps) {
           <section key={section.photos[0].src} className="gallery__group" aria-label={section.title}>
             {section.title && <h2 className="gallery__title">{section.title}</h2>}
             {section.rows.map((row) => (
-              <div key={row[0].photo.src} className="gallery__row" style={rowStyle(row)}>
+              <div
+                key={row[0].photo.src}
+                className="gallery__row"
+                data-lone={isLonePortrait(row) ? "" : undefined}
+                style={rowStyle(row)}
+              >
                 {row.map(({ photo, index }) => (
                   <button
                     key={photo.src}

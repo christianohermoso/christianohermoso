@@ -241,6 +241,10 @@ button {
   margin-bottom: var(--row-gap);
 }
 
+.gallery__row[data-lone] {
+  width: min(50%, calc(var(--row-cap) * var(--row-ratio)));
+}
+
 .gallery__item {
   position: relative;
   flex: var(--ratio) 1 0%;
@@ -485,7 +489,8 @@ button {
     padding: 0.5rem var(--edge) 4rem;
   }
 
-  .gallery__row {
+  .gallery__row,
+  .gallery__row[data-lone] {
     display: block;
     width: 100%;
     margin-bottom: 0;
