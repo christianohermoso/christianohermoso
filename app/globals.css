@@ -363,8 +363,7 @@ button {
   background: var(--sky);
 }
 
-.viewer__prints img,
-.viewer__lens {
+.viewer__prints img {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -373,10 +372,6 @@ button {
 
 .viewer__prints img {
   object-fit: cover;
-}
-
-.viewer__lens {
-  visibility: hidden;
 }
 
 .viewer__full {

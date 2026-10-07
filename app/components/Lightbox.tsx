@@ -4,7 +4,6 @@ import Image from "next/image";
 import { useRef } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { useMountEffect } from "@/hooks/useMountEffect";
-import { canFocus, createLens, type Lens } from "@/lib/lens";
 import { gridSizes } from "@/lib/sizes";
 import type { Photo } from "@/app/data/photos";
 
@@ -71,8 +70,6 @@ function pad(value: number) {
 export function Lightbox({ photos, index, label, caption, onStep, onClose }: LightboxProps) {
   const root = useRef<HTMLDivElement>(null);
   const frame = useRef<HTMLElement>(null);
-  const prints = useRef<HTMLDivElement>(null);
-  const lensCanvas = useRef<HTMLCanvasElement>(null);
   const closeButton = useRef<HTMLButtonElement>(null);
   const swipeStart = useRef<number | null>(null);
   const hasOpened = useRef(false);
@@ -93,31 +90,6 @@ export function Lightbox({ photos, index, label, caption, onStep, onClose }: Lig
       if (prefersReducedMotion() || !frame.current) return;
 
       const thumbnail = thumbnailFor(index);
-      const source = thumbnail?.querySelector("img");
-      let lens: Lens | null = null;
-
-      if (isFirstOpen && lensCanvas.current && canFocus(source)) lens = createLens(lensCanvas.current, source);
-
-      if (lens) {
-        const activeLens = lens;
-        const state = { progress: 0 };
-        activeLens.draw(0);
-        gsap.set(lensCanvas.current, { autoAlpha: 1 });
-        gsap.set(prints.current, { autoAlpha: 0 });
-        gsap.to(state, {
-          progress: 1,
-          duration: 1.4,
-          ease: "power2.inOut",
-          onUpdate: () => activeLens.draw(state.progress),
-          onComplete: () => {
-            gsap.set(prints.current, { autoAlpha: 1 });
-            gsap.set(lensCanvas.current, { autoAlpha: 0 });
-            activeLens.destroy();
-            lens = null;
-          },
-        });
-      }
-
       if (isFirstOpen && thumbnail) {
         gsap.from(frame.current, {
           ...deltaBetween(thumbnail.getBoundingClientRect(), frame.current.getBoundingClientRect()),
@@ -126,8 +98,6 @@ export function Lightbox({ photos, index, label, caption, onStep, onClose }: Lig
           ease: "expo.out",
         });
       }
-
-      return () => lens?.destroy();
     },
     { scope: root, dependencies: [index] },
   );
@@ -218,7 +188,7 @@ export function Lightbox({ photos, index, label, caption, onStep, onClose }: Lig
           data-index={index}
           style={{ "--ratio": (photo.width / photo.height).toFixed(4) } as React.CSSProperties}
         >
-          <div ref={prints} className="viewer__prints">
+          <div className="viewer__prints">
             <Image src={photo.src} alt="" width={photo.width} height={photo.height} sizes={gridSizes} />
             <Image
               className="viewer__full"
@@ -231,7 +201,6 @@ export function Lightbox({ photos, index, label, caption, onStep, onClose }: Lig
               onLoad={markLoaded}
             />
           </div>
-          <canvas ref={lensCanvas} className="viewer__lens" aria-hidden="true" />
         </figure>
         <button
           type="button"
