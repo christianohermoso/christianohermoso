@@ -11,7 +11,7 @@
   --screen: 100vh;
   --row-cap: calc(var(--screen) - var(--edge) * 2);
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --font: var(--font-archivo), "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font: Arial, "Helvetica Neue", Helvetica, sans-serif;
   color-scheme: light;
 }
 
@@ -45,8 +45,7 @@ body {
   color: var(--ink);
   font-family: var(--font);
   font-size: clamp(0.8125rem, 0.3rem + 0.42vw, 1.0625rem);
-  font-stretch: 80%;
-  font-weight: 500;
+  font-weight: 400;
   line-height: 1.45;
   letter-spacing: 0.01em;
   text-transform: uppercase;

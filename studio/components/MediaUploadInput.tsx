@@ -21,13 +21,15 @@ function referenceTo(assetId: string) {
 }
 
 export function MediaUploadInput(props: ArrayOfObjectsInputProps) {
-  const { onChange, renderDefault, readOnly } = props;
+  const { onChange, renderDefault, readOnly, schemaType } = props;
+  const allowsVideo = schemaType.of.some((member) => member.name === "video");
   const client = useClient({ apiVersion });
   const picker = useRef<HTMLInputElement>(null);
   const [progress, setProgress] = useState<Progress | null>(null);
 
   const uploadOne = async (file: File) => {
     if (isVideo(file)) {
+      if (!allowsVideo) throw new Error(`${file.name} is a video; this field only takes images.`);
       const asset = await client.assets.upload("file", file, { filename: file.name });
       return { _type: "video", _key: uniqueKey(), file: { _type: "file", asset: referenceTo(asset._id) } };
     }
@@ -66,7 +68,7 @@ export function MediaUploadInput(props: ArrayOfObjectsInputProps) {
       <input
         ref={picker}
         type="file"
-        accept="image/*,video/*"
+        accept={allowsVideo ? "image/*,video/*" : "image/*"}
         multiple
         hidden
         onChange={onPick}
@@ -75,7 +77,7 @@ export function MediaUploadInput(props: ArrayOfObjectsInputProps) {
         <Button
           icon={UploadIcon}
           mode="ghost"
-          text={uploading ? `Uploading ${progress.done} / ${progress.total}…` : "Upload images & videos"}
+          text={uploading ? `Uploading ${progress.done} / ${progress.total}…` : allowsVideo ? "Upload images & videos" : "Upload images"}
           disabled={readOnly || uploading}
           onClick={() => picker.current?.click()}
         />

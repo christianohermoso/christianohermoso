@@ -10,6 +10,9 @@ const videoDirectory = path.resolve("public/video/sanity");
 const cacheDirectory = path.resolve(".cache/sanity");
 const photosFile = path.resolve("app/data/photos.ts");
 const contactFile = path.resolve("app/data/contact.ts");
+const introDirectory = path.resolve("public/load/sanity");
+const introFile = path.resolve("app/data/intro.ts");
+const introSize = { w: 640, h: 800 };
 
 const client = createClient({ ...sanityConfig, useCdn: false, perspective: "published" });
 
@@ -22,7 +25,8 @@ const mediaProjection = `media[]{
 const query = `{
   "selected": *[_id == "selected"][0]{ ${mediaProjection} },
   "projects": *[_type == "project" && count(media) > 0] | order(orderRank) { title, ${mediaProjection} },
-  "contact": *[_id == "contact"][0]{ email, clients, instagram }
+  "contact": *[_id == "contact"][0]{ email, clients, instagram },
+  "intro": *[_id == "intro"][0].images[].asset->{ _id, url }
 }`;
 
 async function exists(file) {
@@ -76,6 +80,29 @@ async function prune(directory, keep) {
   return stale.length;
 }
 
+async function syncIntroFrame(asset) {
+  const target = path.join(introDirectory, `${asset._id}.webp`);
+  if (!(await exists(target))) {
+    const params = new URLSearchParams({ ...introSize, fit: "max", fm: "webp", q: 85 });
+    await download(`${asset.url}?${params}`, target);
+  }
+  const { width, height } = await sharp(target).metadata();
+  return { src: `/load/sanity/${asset._id}.webp`, width, height };
+}
+
+function introModule(frames) {
+  return `export type IntroFrame = {
+  src: string;
+  width: number;
+  height: number;
+};
+
+export const introFrames: IntroFrame[] = [
+${frames.map((frame) => `  { src: "${frame.src}", width: ${frame.width}, height: ${frame.height} },`).join("\n")}
+];
+`;
+}
+
 function contactModule(contact) {
   return `export const contact = {
   email: ${JSON.stringify(contact.email)},
@@ -105,6 +132,16 @@ async function main() {
     const removed = (await prune(mediaDirectory, keepImages)) + (await prune(videoDirectory, keepVideos));
     const total = used.length;
     console.log(`sanity: ${selected.length} selected, ${projects.length} projects, ${total} items, ${removed} stale files removed`);
+  }
+
+  const introAssets = (content.intro ?? []).filter(Boolean);
+  if (introAssets.length) {
+    const frames = await inParallel(introAssets, 4, syncIntroFrame);
+    await writeFile(introFile, introModule(frames));
+    await prune(introDirectory, new Set(frames.map((frame) => path.basename(frame.src))));
+    console.log(`sanity: intro ${frames.length} images`);
+  } else {
+    console.log("sanity: no intro images chosen yet, keeping current intro");
   }
 
   if (content.contact?.email) {

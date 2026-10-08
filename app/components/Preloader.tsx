@@ -3,7 +3,8 @@
 import Image from "next/image";
 import { useRef } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
-import { identity, loaderFrames, monogram } from "@/app/data/site";
+import { introFrames } from "@/app/data/intro";
+import { identity, monogram } from "@/app/data/site";
 
 const scatter: Array<[number, number]> = [
   [-0.62, -0.22],
@@ -20,7 +21,7 @@ const scatter: Array<[number, number]> = [
   [-0.04, 0.04],
 ];
 
-const total = String(loaderFrames.length).padStart(2, "0");
+const total = String(introFrames.length).padStart(2, "0");
 const hiddenStroke = "polygon(0% 100%, 0% 100%, 0% 100%)";
 const fullStroke = "polygon(0% 100%, 220% 100%, 0% -120%)";
 
@@ -65,7 +66,7 @@ export function Preloader({ onDone }: PreloaderProps) {
 
       frames.forEach((frame, index) => {
         const width = frameHeight * Number(frame.dataset.ratio);
-        const [offsetX, offsetY] = scatter[index] ?? [0, 0];
+        const [offsetX, offsetY] = scatter[index % scatter.length];
         gsap.set(frame, {
           width,
           height: frameHeight,
@@ -148,7 +149,7 @@ export function Preloader({ onDone }: PreloaderProps) {
         <span ref={counter}>00</span>
         <span className="loader__total"> | {total}</span>
       </p>
-      {loaderFrames.map((frame, index) => (
+      {introFrames.map((frame, index) => (
         <div
           key={frame.src}
           className="loader__frame"
