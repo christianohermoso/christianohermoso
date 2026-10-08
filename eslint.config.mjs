@@ -9,7 +9,7 @@ const eslintConfig = defineConfig([
     files: ["hooks/useMountEffect.ts"],
     rules: { "react-hooks/exhaustive-deps": "off" },
   },
-  globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts"]),
+  globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts", "studio/**"]),
 ]);
 
 export default eslintConfig;

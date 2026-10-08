@@ -3,15 +3,19 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "sync": "node scripts/sync-sanity.mjs",
     "images": "node scripts/generate-images.mjs",
     "predev": "npm run images",
     "dev": "next dev",
-    "prebuild": "npm run images",
+    "prebuild": "npm run sync && npm run images",
     "build": "next build",
     "start": "wrangler dev",
     "lint": "eslint",
     "preview": "npm run build && wrangler dev",
-    "deploy": "npm run build && wrangler deploy"
+    "deploy": "npm run build && wrangler deploy",
+    "studio": "npm --prefix studio run dev",
+    "studio:deploy": "npm --prefix studio run deploy",
+    "migrate": "node scripts/migrate-to-sanity.mjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
@@ -21,12 +25,15 @@
     "react-dom": "19.2.8"
   },
   "devDependencies": {
+    "@sanity/client": "^8.9.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.8",
+    "ffmpeg-static": "^5.3.0",
+    "lexorank": "^1.0.5",
     "sharp": "^0.35.5",
     "tailwindcss": "^4",
     "typescript": "^5",

@@ -1,9 +1,9 @@
 import { mkdir, readdir, stat } from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
-import { imageWidths, outputFolder, sourceFolders } from "../lib/image-widths.mjs";
+import { imageWidths, outputFolder, sourceRoot } from "../lib/image-widths.mjs";
 
-const sourceDirectory = path.resolve("media");
+const sourceDirectory = path.resolve(sourceRoot);
 const publicDirectory = path.resolve("public");
 const concurrency = 8;
 
@@ -16,40 +16,48 @@ async function isFresh(source, target) {
   }
 }
 
-async function resize(source, folder, file) {
-  const name = path.parse(file).name;
-  const targetDirectory = path.join(publicDirectory, outputFolder, folder);
+async function resize(file) {
+  const source = path.join(sourceDirectory, file);
+  const { dir, name } = path.parse(file);
+  const targetDirectory = path.join(publicDirectory, outputFolder, dir);
   await mkdir(targetDirectory, { recursive: true });
   let written = 0;
   for (const width of imageWidths) {
     const target = path.join(targetDirectory, `${name}-${width}.webp`);
     if (await isFresh(source, target)) continue;
-    await sharp(source).resize({ width, withoutEnlargement: true }).webp({ quality: 80 }).toFile(target);
+    await sharp(source)
+      .resize({ width, withoutEnlargement: true })
+      .webp({ quality: 90, smartSubsample: true })
+      .toFile(target);
     written += 1;
   }
   return written;
 }
 
-async function run() {
-  const jobs = [];
-  for (const folder of sourceFolders) {
-    const files = await readdir(path.join(sourceDirectory, folder));
-    for (const file of files.filter((entry) => /\.(webp|jpe?g|png)$/i.test(entry))) {
-      jobs.push(() => resize(path.join(sourceDirectory, folder, file), folder, file));
-    }
+async function collect(relative = "") {
+  const entries = await readdir(path.join(sourceDirectory, relative), { withFileTypes: true });
+  const files = [];
+  for (const entry of entries) {
+    const entryPath = path.join(relative, entry.name);
+    if (entry.isDirectory()) files.push(...(await collect(entryPath)));
+    else if (/\.(webp|jpe?g|png)$/i.test(entry.name)) files.push(entryPath);
   }
+  return files;
+}
 
+async function run() {
+  const files = await collect();
   let written = 0;
   let cursor = 0;
   const workers = Array.from({ length: concurrency }, async () => {
-    while (cursor < jobs.length) {
-      const job = jobs[cursor++];
-      const count = await job();
+    while (cursor < files.length) {
+      const file = files[cursor++];
+      const count = await resize(file);
       written += count;
     }
   });
   await Promise.all(workers);
-  console.log(`images: ${jobs.length} sources, ${written} sizes written`);
+  console.log(`images: ${files.length} sources, ${written} sizes written`);
 }
 
 await run();

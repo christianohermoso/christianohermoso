@@ -5,6 +5,7 @@ import { useRef } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { useMountEffect } from "@/hooks/useMountEffect";
 import { gridSizes } from "@/lib/sizes";
+import { Clip } from "./Clip";
 import type { Photo } from "@/app/data/photos";
 
 const viewerSizes = "100vw";
@@ -41,7 +42,7 @@ function prefersReducedMotion() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-function markLoaded(event: React.SyntheticEvent<HTMLImageElement>) {
+function markLoaded(event: React.SyntheticEvent<HTMLImageElement | HTMLVideoElement>) {
   event.currentTarget.dataset.loaded = "true";
 }
 
@@ -190,16 +191,20 @@ export function Lightbox({ photos, index, label, caption, onStep, onClose }: Lig
         >
           <div className="viewer__prints">
             <Image src={photo.src} alt="" width={photo.width} height={photo.height} sizes={gridSizes} />
-            <Image
-              className="viewer__full"
-              src={photo.src}
-              alt={`${label} photograph ${index + 1} of ${photos.length} by Christiano Hermoso`}
-              width={photo.width}
-              height={photo.height}
-              sizes={viewerSizes}
-              loading="eager"
-              onLoad={markLoaded}
-            />
+            {photo.video ? (
+              <Clip className="viewer__full" src={photo.video} poster={photo.src} onLoaded={markLoaded} />
+            ) : (
+              <Image
+                className="viewer__full"
+                src={photo.src}
+                alt={`${label} photograph ${index + 1} of ${photos.length} by Christiano Hermoso`}
+                width={photo.width}
+                height={photo.height}
+                sizes={viewerSizes}
+                loading="eager"
+                onLoad={markLoaded}
+              />
+            )}
           </div>
         </figure>
         <button

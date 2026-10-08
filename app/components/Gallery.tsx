@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useState } from "react";
 import type { Photo } from "@/app/data/photos";
 import { gridSizes } from "@/lib/sizes";
+import { Clip } from "./Clip";
 import { Lightbox } from "./Lightbox";
 
 type Row = Array<{ photo: Photo; index: number }>;
@@ -47,7 +48,7 @@ function rowStyle(row: Row) {
   return { "--row-ratio": ratioSum.toFixed(4) } as React.CSSProperties;
 }
 
-function markLoaded(event: React.SyntheticEvent<HTMLImageElement>) {
+function markLoaded(event: React.SyntheticEvent<HTMLImageElement | HTMLVideoElement>) {
   event.currentTarget.dataset.loaded = "true";
 }
 
@@ -106,16 +107,20 @@ export function Gallery({ groups, label }: GalleryProps) {
                     onClick={() => open(index)}
                     aria-label={`View ${label} image ${index + 1} of ${photos.length}`}
                   >
-                    <Image
-                      src={photo.src}
-                      alt={`${label} photograph ${index + 1} of ${photos.length} by Christiano Hermoso`}
-                      width={photo.width}
-                      height={photo.height}
-                      sizes={gridSizes}
-                      loading={sectionIndex < 2 ? "eager" : "lazy"}
-                      preload={index === 0}
-                      onLoad={markLoaded}
-                    />
+                    {photo.video ? (
+                      <Clip src={photo.video} poster={photo.src} onLoaded={markLoaded} />
+                    ) : (
+                      <Image
+                        src={photo.src}
+                        alt={`${label} photograph ${index + 1} of ${photos.length} by Christiano Hermoso`}
+                        width={photo.width}
+                        height={photo.height}
+                        sizes={gridSizes}
+                        loading={sectionIndex < 2 ? "eager" : "lazy"}
+                        preload={index === 0}
+                        onLoad={markLoaded}
+                      />
+                    )}
                   </button>
                 ))}
               </div>

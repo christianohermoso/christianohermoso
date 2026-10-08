@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useRef } from "react";
 import { useMountEffect } from "@/hooks/useMountEffect";
+import { contact } from "@/app/data/contact";
 import { identity, monogram, navigation } from "@/app/data/site";
 
 const scrollTolerance = 8;
@@ -59,7 +60,7 @@ export function Sidebar() {
             </li>
           ))}
         </ul>
-        <a className="sidebar__social" href={identity.instagram} target="_blank" rel="noreferrer">
+        <a className="sidebar__social" href={contact.instagram} target="_blank" rel="noreferrer">
           Instagram
         </a>
       </nav>

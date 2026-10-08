@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     description: identity.description,
     siteName: identity.name,
     type: "website",
-    images: [{ url: "/_img/overview/002-1080.webp", width: 1080, height: 1350 }],
+    images: [{ url: "/_img/selected/024-1080.webp", width: 1080, height: 1350 }],
   },
 };
 
