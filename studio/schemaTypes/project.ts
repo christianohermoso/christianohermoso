@@ -3,6 +3,12 @@ import { ImagesIcon } from "@sanity/icons/Images";
 import { orderRankField, orderRankOrdering } from "@sanity/orderable-document-list";
 import { mediaField } from "./mediaField";
 
+function countItems(items: unknown) {
+  if (Array.isArray(items)) return items.length;
+  if (items && typeof items === "object") return Object.keys(items).length;
+  return undefined;
+}
+
 export const project = defineType({
   name: "project",
   title: "Advertising project",
@@ -20,11 +26,14 @@ export const project = defineType({
     orderRankField({ type: "project" }),
   ],
   preview: {
-    select: { title: "title", media: "media.0.asset", count: "media" },
-    prepare: ({ title, media, count }) => ({
-      title,
-      subtitle: Array.isArray(count) ? `${count.length} items` : "Empty",
-      media,
-    }),
+    select: { title: "title", image: "media.0.asset", poster: "media.0.poster.asset", items: "media" },
+    prepare: ({ title, image, poster, items }) => {
+      const count = countItems(items);
+      return {
+        title,
+        subtitle: count === undefined ? undefined : count === 0 ? "Empty" : `${count} ${count === 1 ? "item" : "items"}`,
+        media: image ?? poster,
+      };
+    },
   },
 });

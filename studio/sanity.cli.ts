@@ -4,5 +4,5 @@ import { dataset, projectId } from "./env";
 export default defineCliConfig({
   api: { projectId, dataset },
   studioHost: "christianohermoso",
-  deployment: { autoUpdates: true },
+  deployment: { appId: "ea5cza2phqjm0067xhwp6kxk", autoUpdates: true },
 });
