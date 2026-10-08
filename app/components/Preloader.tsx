@@ -63,6 +63,7 @@ export function Preloader({ onDone }: PreloaderProps) {
         left: centerX - markWidth / 2,
         top: centerY - markHeight / 2,
         clipPath: hiddenStroke,
+        visibility: "visible",
       });
 
       frames.forEach((frame, index) => {
