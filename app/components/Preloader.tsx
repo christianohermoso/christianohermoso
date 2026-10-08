@@ -131,11 +131,18 @@ export function Preloader({ onDone }: PreloaderProps) {
           .set(mark.current, { autoAlpha: 0 });
       }
 
+      let cancelled = false;
       Promise.all([
         ...frames.map((frame) => decoded(frame.querySelector("img"))),
         decoded(mark.current?.querySelector("img")),
         document.fonts.ready,
-      ]).then(() => timeline.play());
+      ]).then(() => {
+        if (!cancelled) timeline.play();
+      });
+
+      return () => {
+        cancelled = true;
+      };
     },
     { scope: root },
   );

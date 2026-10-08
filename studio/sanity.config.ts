@@ -16,9 +16,12 @@ export default defineConfig({
   plugins: [structureTool({ structure }), media(), visionTool({ defaultApiVersion: apiVersion })],
   schema: {
     types: schemaTypes,
-    templates: (templates) => templates.filter(({ schemaType }) => !singletonTypes.has(schemaType)),
   },
   document: {
+    newDocumentOptions: (templates, { creationContext }) =>
+      creationContext.type === "global"
+        ? templates.filter(({ templateId }) => !singletonTypes.has(templateId))
+        : templates,
     actions: (actions, { schemaType }) =>
       singletonTypes.has(schemaType)
         ? actions.filter(({ action }) => action && singletonActions.has(action))

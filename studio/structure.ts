@@ -11,7 +11,7 @@ export const structure: StructureResolver = (S, context) =>
       S.listItem()
         .title("Intro")
         .icon(PlayIcon)
-        .child(S.document().schemaType("intro").documentId("intro").title("Intro")),
+        .child(S.document().schemaType("intro").documentId("siteIntro").title("Intro")),
       S.divider(),
       S.listItem()
         .title("Selected")

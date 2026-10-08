@@ -26,7 +26,8 @@ const query = `{
   "selected": *[_id == "selected"][0]{ ${mediaProjection} },
   "projects": *[_type == "project" && count(media) > 0] | order(orderRank) { title, ${mediaProjection} },
   "contact": *[_id == "contact"][0]{ email, clients, instagram },
-  "intro": *[_id == "intro"][0].images[].asset->{ _id, url }
+  "intro": *[_type == "intro" && !(_id in path("drafts.**"))][0].images[].asset->{ _id, url },
+  "introFallback": *[_id == "selected"][0].media[_type == "image"][0...12].asset->{ _id, url }
 }`;
 
 async function exists(file) {
@@ -134,15 +135,13 @@ async function main() {
     console.log(`sanity: ${selected.length} selected, ${projects.length} projects, ${total} items, ${removed} stale files removed`);
   }
 
-  const introAssets = (content.intro ?? []).filter(Boolean);
-  if (introAssets.length) {
-    const frames = await inParallel(introAssets, 4, syncIntroFrame);
-    await writeFile(introFile, introModule(frames));
-    await prune(introDirectory, new Set(frames.map((frame) => path.basename(frame.src))));
-    console.log(`sanity: intro ${frames.length} images`);
-  } else {
-    console.log("sanity: no intro images chosen yet, keeping current intro");
-  }
+  const chosenIntro = (content.intro ?? []).filter(Boolean);
+  const introAssets = chosenIntro.length ? chosenIntro : (content.introFallback ?? []).filter(Boolean);
+  const frames = await inParallel(introAssets, 4, syncIntroFrame);
+  await writeFile(introFile, introModule(frames));
+  await prune(introDirectory, new Set(frames.map((frame) => path.basename(frame.src))));
+  const introSource = chosenIntro.length ? "chosen in Intro" : "first Selected images";
+  console.log(`sanity: intro ${frames.length} images (${introSource})`);
 
   if (content.contact?.email) {
     await writeFile(contactFile, contactModule(content.contact));
