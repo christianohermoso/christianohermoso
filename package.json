@@ -5,7 +5,7 @@
   "scripts": {
     "sync": "node scripts/sync-sanity.mjs",
     "images": "node scripts/generate-images.mjs",
-    "predev": "npm run images",
+    "predev": "npm run sync && npm run images",
     "dev": "next dev",
     "prebuild": "npm run sync && npm run images",
     "build": "next build",
