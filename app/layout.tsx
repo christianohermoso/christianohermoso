@@ -1,33 +1,23 @@
 import type { Metadata, Viewport } from "next";
 import { Shell } from "./components/Shell";
-import { content } from "./data/content";
 import { identity } from "./data/site";
+import { pageCopy, pageMetadata, siteUrl, structuredData } from "@/lib/seo";
 import "./globals.css";
 
-const shareImage = content.selected.find((photo) => photo.src && !photo.video);
-const shareUrl = shareImage?.src ? `${shareImage.src}?w=1200&q=80&fm=jpg&fit=max` : undefined;
-
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.christianohermoso.com"),
+  ...pageMetadata("/", pageCopy.home),
+  metadataBase: new URL(siteUrl),
   title: {
-    default: identity.name,
+    default: pageCopy.home.title,
     template: `%s — ${identity.name}`,
   },
-  description: identity.description,
-  openGraph: {
-    title: identity.name,
-    description: identity.description,
-    siteName: identity.name,
-    type: "website",
-    images: shareUrl
-      ? [
-          {
-            url: shareUrl,
-            width: 1200,
-            height: Math.round((shareImage!.height / shareImage!.width) * 1200),
-          },
-        ]
-      : undefined,
+  applicationName: identity.name,
+  authors: [{ name: identity.name, url: siteUrl }],
+  creator: identity.name,
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large" },
   },
 };
 
@@ -42,6 +32,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <noscript>
           <style>{`html{overflow:auto !important}.loader{display:none}.gallery__item img{opacity:1}[data-logo-target]{visibility:visible}`}</style>
         </noscript>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData()).replace(/</g, "\\u003c") }}
+        />
         <Shell>{children}</Shell>
       </body>
     </html>

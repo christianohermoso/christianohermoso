@@ -166,7 +166,7 @@ export function Lightbox({ photos, index, label, caption, onStep, onClose }: Lig
       className="viewer"
       role="dialog"
       aria-modal="true"
-      aria-label={`${label} image ${index + 1} of ${photos.length}`}
+      aria-label={`${caption ?? label} image ${index + 1} of ${photos.length}`}
     >
       <div className="viewer__bar" data-viewer-chrome>
         <p className="viewer__count">
@@ -201,7 +201,7 @@ export function Lightbox({ photos, index, label, caption, onStep, onClose }: Lig
               <Image
                 className="viewer__full"
                 src={photo.src ?? ""}
-                alt={`${label} photograph ${index + 1} of ${photos.length} by Christiano Hermoso`}
+                alt={`${caption ?? label} photography by Christiano Hermoso`}
                 width={photo.width}
                 height={photo.height}
                 sizes={viewerSizes}

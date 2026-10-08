@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
+import { pageCopy, pageMetadata } from "@/lib/seo";
 import { LiveContact } from "../components/LiveContact";
 import { content } from "../data/content";
 
-export const metadata: Metadata = {
-  title: "Contact",
-};
+export const metadata: Metadata = pageMetadata("/contact", pageCopy.contact);
 
 export default function ContactPage() {
   return (

@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
+import { pageCopy, pageMetadata } from "@/lib/seo";
 import { LiveGallery } from "../components/LiveGallery";
 import { content } from "../data/content";
 
-export const metadata: Metadata = {
-  title: "Advertising",
-};
+export const metadata: Metadata = pageMetadata("/advertising", pageCopy.advertising);
 
 export default function AdvertisingPage() {
   return (

@@ -50,6 +50,10 @@ function rowStyle(row: Row) {
   return { "--row-ratio": ratioSum.toFixed(4) } as React.CSSProperties;
 }
 
+function describe(subject: string) {
+  return `${subject} photography by Christiano Hermoso`;
+}
+
 function markLoaded(event: React.SyntheticEvent<HTMLImageElement | HTMLVideoElement>) {
   event.currentTarget.dataset.loaded = "true";
 }
@@ -90,7 +94,11 @@ export function Gallery({ groups, label }: GalleryProps) {
     <>
       <div className="gallery">
         {sections.map((section) => (
-          <section key={`${section.title ?? ""}${photoKey(section.photos[0])}`} className="gallery__group" aria-label={section.title}>
+          <section
+            key={`${section.title ?? ""}${photoKey(section.photos[0])}`}
+            className="gallery__group"
+            aria-label={section.title}
+          >
             {section.title && <h2 className="gallery__title">{section.title}</h2>}
             {section.rows.map((row) => (
               <div
@@ -107,22 +115,22 @@ export function Gallery({ groups, label }: GalleryProps) {
                     data-photo-index={index}
                     style={{ "--ratio": ratioOf(photo).toFixed(4) } as React.CSSProperties}
                     onClick={() => open(index)}
-                    aria-label={`View ${label} image ${index + 1} of ${photos.length}`}
+                    aria-label={`View ${section.title ?? label} image ${index + 1} of ${photos.length}`}
                   >
                     {photo.video ? (
                       <Clip src={photo.video} poster={photo.src} onLoaded={markLoaded} />
                     ) : (
                       photo.src && (
-                      <Image
-                        src={photo.src}
-                        alt={`${label} photograph ${index + 1} of ${photos.length} by Christiano Hermoso`}
-                        width={photo.width}
-                        height={photo.height}
-                        sizes={gridSizes}
-                        loading={index < eagerCount ? "eager" : "lazy"}
-                        preload={index === 0}
-                        onLoad={markLoaded}
-                      />
+                        <Image
+                          src={photo.src}
+                          alt={describe(section.title ?? label)}
+                          width={photo.width}
+                          height={photo.height}
+                          sizes={gridSizes}
+                          loading={index < eagerCount ? "eager" : "lazy"}
+                          preload={index === 0}
+                          onLoad={markLoaded}
+                        />
                       )
                     )}
                   </button>
