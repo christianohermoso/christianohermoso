@@ -1,5 +1,5 @@
-import { Gallery } from "./components/Gallery";
-import { selected } from "./data/photos";
+import { LiveGallery } from "./components/LiveGallery";
+import { content } from "./data/content";
 import { identity } from "./data/site";
 
 export default function SelectedPage() {
@@ -8,7 +8,7 @@ export default function SelectedPage() {
       <h1 className="visually-hidden">
         {identity.name}, {identity.description}
       </h1>
-      <Gallery groups={[{ photos: selected }]} label="Selected" />
+      <LiveGallery initial={content} view="selected" />
     </>
   );
 }

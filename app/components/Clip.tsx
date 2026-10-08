@@ -6,7 +6,7 @@ import imageLoader from "@/lib/image-loader";
 
 type ClipProps = {
   src: string;
-  poster: string;
+  poster?: string;
   className?: string;
   onLoaded?: (event: React.SyntheticEvent<HTMLVideoElement>) => void;
 };
@@ -34,11 +34,11 @@ export function Clip({ src, poster, className, onLoaded }: ClipProps) {
       ref={video}
       className={className}
       src={src}
-      poster={imageLoader({ src: poster, width: 1080 })}
+      poster={poster ? imageLoader({ src: poster, width: 1080 }) : undefined}
       muted
       loop
       playsInline
-      preload="none"
+      preload={poster ? "none" : "metadata"}
       aria-hidden="true"
       onLoadedData={onLoaded}
     />

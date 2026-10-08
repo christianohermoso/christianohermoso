@@ -1,11 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import { Shell } from "./components/Shell";
-import { selected } from "./data/photos";
+import { content } from "./data/content";
 import { identity } from "./data/site";
 import "./globals.css";
 
-const shareImage = selected.find((photo) => !photo.video) ?? selected[0];
-const shareWidth = Math.min(1080, shareImage.width);
+const shareImage = content.selected.find((photo) => photo.src && !photo.video);
+const shareUrl = shareImage?.src ? `${shareImage.src}?w=1200&q=80&fm=jpg&fit=max` : undefined;
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.christianohermoso.com"),
@@ -19,13 +19,15 @@ export const metadata: Metadata = {
     description: identity.description,
     siteName: identity.name,
     type: "website",
-    images: [
-      {
-        url: `/_img${shareImage.src.replace(/\.webp$/, "")}-1080.webp`,
-        width: shareWidth,
-        height: Math.round((shareImage.height / shareImage.width) * shareWidth),
-      },
-    ],
+    images: shareUrl
+      ? [
+          {
+            url: shareUrl,
+            width: 1200,
+            height: Math.round((shareImage!.height / shareImage!.width) * 1200),
+          },
+        ]
+      : undefined,
   },
 };
 

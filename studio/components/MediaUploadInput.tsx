@@ -6,7 +6,7 @@ import { apiVersion } from "../env";
 
 const batchSize = 5;
 
-type Progress = { done: number; total: number; failed: number };
+type Progress = { done: number; total: number; failed: number; reasons: string[] };
 
 function uniqueKey() {
   return `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`;
@@ -14,6 +14,29 @@ function uniqueKey() {
 
 function isVideo(file: File) {
   return file.type.startsWith("video/") || /\.(mov|mp4|m4v|webm)$/i.test(file.name);
+}
+
+function isWebVideo(file: File) {
+  return ["video/mp4", "video/webm"].includes(file.type) || /\.(mp4|m4v|webm)$/i.test(file.name);
+}
+
+function measureVideo(file: File) {
+  return new Promise<{ width: number; height: number }>((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const probe = document.createElement("video");
+    probe.preload = "metadata";
+    probe.muted = true;
+    probe.onloadedmetadata = () => {
+      URL.revokeObjectURL(url);
+      if (probe.videoWidth && probe.videoHeight) resolve({ width: probe.videoWidth, height: probe.videoHeight });
+      else reject(new Error(`${file.name} can't be played in browsers. Export it as an H.264 MP4.`));
+    };
+    probe.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error(`${file.name} can't be played in browsers. Export it as an H.264 MP4.`));
+    };
+    probe.src = url;
+  });
 }
 
 function referenceTo(assetId: string) {
@@ -30,8 +53,15 @@ export function MediaUploadInput(props: ArrayOfObjectsInputProps) {
   const uploadOne = async (file: File) => {
     if (isVideo(file)) {
       if (!allowsVideo) throw new Error(`${file.name} is a video; this field only takes images.`);
+      if (!isWebVideo(file)) throw new Error(`${file.name} is a .mov file. Export it as an MP4 (H.264) and upload that.`);
+      const size = await measureVideo(file);
       const asset = await client.assets.upload("file", file, { filename: file.name });
-      return { _type: "video", _key: uniqueKey(), file: { _type: "file", asset: referenceTo(asset._id) } };
+      return {
+        _type: "video",
+        _key: uniqueKey(),
+        file: { _type: "file", asset: referenceTo(asset._id) },
+        ...size,
+      };
     }
     const asset = await client.assets.upload("image", file, { filename: file.name });
     return { _type: "image", _key: uniqueKey(), asset: referenceTo(asset._id) };
@@ -39,7 +69,7 @@ export function MediaUploadInput(props: ArrayOfObjectsInputProps) {
 
   const upload = async (files: File[]) => {
     if (!files.length) return;
-    const state: Progress = { done: 0, total: files.length, failed: 0 };
+    const state: Progress = { done: 0, total: files.length, failed: 0, reasons: [] };
     setProgress({ ...state });
     onChange(setIfMissing([]));
 
@@ -50,7 +80,10 @@ export function MediaUploadInput(props: ArrayOfObjectsInputProps) {
       if (items.length) onChange(insert(items, "after", [-1]));
       state.done += batch.length;
       state.failed += batch.length - items.length;
-      setProgress({ ...state });
+      for (const result of results) {
+        if (result.status === "rejected") state.reasons.push(String(result.reason?.message ?? result.reason));
+      }
+      setProgress({ ...state, reasons: [...state.reasons] });
     }
   };
 
@@ -68,7 +101,7 @@ export function MediaUploadInput(props: ArrayOfObjectsInputProps) {
       <input
         ref={picker}
         type="file"
-        accept={allowsVideo ? "image/*,video/*" : "image/*"}
+        accept={allowsVideo ? "image/*,video/mp4,video/webm" : "image/*"}
         multiple
         hidden
         onChange={onPick}
@@ -82,10 +115,17 @@ export function MediaUploadInput(props: ArrayOfObjectsInputProps) {
           onClick={() => picker.current?.click()}
         />
         {progress && !uploading && progress.failed > 0 && (
-          <Card tone="critical" padding={2} radius={2}>
-            <Text size={1}>
-              {progress.failed} of {progress.total} files failed to upload. Try those again.
-            </Text>
+          <Card tone="critical" padding={3} radius={2}>
+            <Stack gap={2}>
+              <Text size={1} weight="semibold">
+                {progress.failed} of {progress.total} files weren't added.
+              </Text>
+              {progress.reasons.map((reason) => (
+                <Text key={reason} size={1}>
+                  {reason}
+                </Text>
+              ))}
+            </Stack>
           </Card>
         )}
       </Flex>

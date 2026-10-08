@@ -6,7 +6,7 @@ import { gsap, useGSAP } from "@/lib/gsap";
 import { useMountEffect } from "@/hooks/useMountEffect";
 import { gridSizes } from "@/lib/sizes";
 import { Clip } from "./Clip";
-import type { Photo } from "@/app/data/photos";
+import { photoKey, type Photo } from "@/lib/content";
 
 const viewerSizes = "100vw";
 
@@ -77,7 +77,9 @@ export function Lightbox({ photos, index, label, caption, onStep, onClose }: Lig
   const closing = useRef(false);
 
   const photo = photos[index];
-  const neighbours = [photos[(index + 1) % photos.length], photos[(index - 1 + photos.length) % photos.length]];
+  const neighbours = [photos[(index + 1) % photos.length], photos[(index - 1 + photos.length) % photos.length]].filter(
+    (item): item is Photo & { src: string } => Boolean(item.src) && !item.video,
+  );
 
   useGSAP(
     () => {
@@ -184,19 +186,21 @@ export function Lightbox({ photos, index, label, caption, onStep, onClose }: Lig
       >
         <figure
           ref={frame}
-          key={photo.src}
+          key={photoKey(photo)}
           className="viewer__frame"
           data-index={index}
           style={{ "--ratio": (photo.width / photo.height).toFixed(4) } as React.CSSProperties}
         >
           <div className="viewer__prints">
-            <Image src={photo.src} alt="" width={photo.width} height={photo.height} sizes={gridSizes} />
+            {photo.src && (
+              <Image src={photo.src} alt="" width={photo.width} height={photo.height} sizes={gridSizes} />
+            )}
             {photo.video ? (
               <Clip className="viewer__full" src={photo.video} poster={photo.src} onLoaded={markLoaded} />
             ) : (
               <Image
                 className="viewer__full"
-                src={photo.src}
+                src={photo.src ?? ""}
                 alt={`${label} photograph ${index + 1} of ${photos.length} by Christiano Hermoso`}
                 width={photo.width}
                 height={photo.height}

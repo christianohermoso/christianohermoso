@@ -40,10 +40,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-/public/_img
 .wrangler
 .dev.vars*
-/media/sanity
-/public/video/sanity
-/.cache
-/public/load

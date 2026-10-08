@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { Gallery } from "../components/Gallery";
-import { advertisingProjects } from "../data/photos";
+import { LiveGallery } from "../components/LiveGallery";
+import { content } from "../data/content";
 
 export const metadata: Metadata = {
   title: "Advertising",
@@ -10,7 +10,7 @@ export default function AdvertisingPage() {
   return (
     <>
       <h1 className="visually-hidden">Advertising</h1>
-      <Gallery groups={advertisingProjects} label="Advertising" />
+      <LiveGallery initial={content} view="advertising" />
     </>
   );
 }

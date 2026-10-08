@@ -2,12 +2,14 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import type { Photo } from "@/app/data/photos";
+import { photoKey, type Photo } from "@/lib/content";
 import { gridSizes } from "@/lib/sizes";
 import { Clip } from "./Clip";
 import { Lightbox } from "./Lightbox";
 
 type Row = Array<{ photo: Photo; index: number }>;
+
+const eagerCount = 4;
 
 function ratioOf(photo: Photo) {
   return photo.width / photo.height;
@@ -87,19 +89,19 @@ export function Gallery({ groups, label }: GalleryProps) {
   return (
     <>
       <div className="gallery">
-        {sections.map((section, sectionIndex) => (
-          <section key={section.photos[0].src} className="gallery__group" aria-label={section.title}>
+        {sections.map((section) => (
+          <section key={`${section.title ?? ""}${photoKey(section.photos[0])}`} className="gallery__group" aria-label={section.title}>
             {section.title && <h2 className="gallery__title">{section.title}</h2>}
             {section.rows.map((row) => (
               <div
-                key={row[0].photo.src}
+                key={photoKey(row[0].photo)}
                 className="gallery__row"
                 data-lone={isLonePortrait(row) ? "" : undefined}
                 style={rowStyle(row)}
               >
                 {row.map(({ photo, index }) => (
                   <button
-                    key={photo.src}
+                    key={photoKey(photo)}
                     type="button"
                     className="gallery__item"
                     data-photo-index={index}
@@ -110,16 +112,18 @@ export function Gallery({ groups, label }: GalleryProps) {
                     {photo.video ? (
                       <Clip src={photo.video} poster={photo.src} onLoaded={markLoaded} />
                     ) : (
+                      photo.src && (
                       <Image
                         src={photo.src}
                         alt={`${label} photograph ${index + 1} of ${photos.length} by Christiano Hermoso`}
                         width={photo.width}
                         height={photo.height}
                         sizes={gridSizes}
-                        loading={sectionIndex < 2 ? "eager" : "lazy"}
+                        loading={index < eagerCount ? "eager" : "lazy"}
                         preload={index === 0}
                         onLoad={markLoaded}
                       />
+                      )
                     )}
                   </button>
                 ))}
