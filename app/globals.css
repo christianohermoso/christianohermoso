@@ -304,6 +304,33 @@ button {
   transition: text-decoration-color 0.3s var(--ease-out);
 }
 
+.missing {
+  display: grid;
+  gap: 0.5rem;
+  justify-items: start;
+}
+
+.missing__code {
+  color: var(--mute);
+  font: inherit;
+}
+
+.missing__link {
+  margin-top: 1rem;
+  color: var(--brush);
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 0.25em;
+  text-decoration-thickness: 1px;
+  transition: text-decoration-color 0.3s var(--ease-out);
+}
+
+@media (hover: hover) {
+  .missing__link:hover {
+    text-decoration-color: currentColor;
+  }
+}
+
 .viewer {
   position: fixed;
   inset: 0;
