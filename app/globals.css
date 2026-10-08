@@ -218,6 +218,7 @@ button {
 
 .gallery {
   max-width: var(--column);
+  margin-inline: auto;
 }
 
 .gallery__group + .gallery__group {
@@ -228,6 +229,7 @@ button {
   margin-bottom: 0.75rem;
   font: inherit;
   color: var(--mute);
+  text-align: center;
 }
 
 .gallery__group:last-child .gallery__row:last-child {
@@ -237,6 +239,7 @@ button {
 .gallery__row {
   display: flex;
   width: min(100%, calc(var(--row-cap) * var(--row-ratio)));
+  margin-inline: auto;
   margin-bottom: var(--row-gap);
 }
 
