@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { content } from "@/app/data/content";
 import { identity } from "@/app/data/site";
 
-export const siteUrl = "https://www.christianohermoso.com";
+export const siteUrl = "https://christianohermoso.com";
 
 const shareImage = { url: "/opengraph-image.png", width: 1200, height: 630, alt: identity.name };
 
